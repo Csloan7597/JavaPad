@@ -1,4 +1,4 @@
-package javapad.client.gui;
+package javapad.client.old.gui;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;

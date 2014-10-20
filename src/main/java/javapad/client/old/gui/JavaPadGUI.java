@@ -1,4 +1,4 @@
-package javapad.client.gui;
+package javapad.client.old.gui;
 
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
@@ -16,8 +16,8 @@ import java.util.Observer;
 import java.util.Set;
 import java.util.logging.Logger;
 
-import javapad.client.connection.JPConnectionManager;
-import javapad.client.interfaces.IConnectionManager;
+import javapad.client.old.connection.JPConnectionManager;
+import javapad.client.old.interfaces.IConnectionManager;
 import javapad.shared.utils.FileUtils;
 import javapad.shared.utils.JavaPadMessage;
 import javapad.shared.utils.JavaPadMessage.MessageType;

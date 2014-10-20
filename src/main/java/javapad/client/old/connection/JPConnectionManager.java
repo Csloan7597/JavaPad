@@ -1,4 +1,4 @@
-package javapad.client.connection;
+package javapad.client.old.connection;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -8,8 +8,8 @@ import java.util.Observable;
 import java.util.Observer;
 import java.util.logging.Logger;
 
-import javapad.client.interfaces.IConnectionManager;
-import javapad.client.interfaces.IResponseListener;
+import javapad.client.old.interfaces.IConnectionManager;
+import javapad.client.old.interfaces.IResponseListener;
 import javapad.shared.utils.JavaPadMessage;
 import javapad.shared.utils.JavaPadMessage.MessageType;
 

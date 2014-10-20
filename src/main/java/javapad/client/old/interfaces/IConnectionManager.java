@@ -1,4 +1,4 @@
-package javapad.client.interfaces;
+package javapad.client.old.interfaces;
 
 import java.io.IOException;
 
