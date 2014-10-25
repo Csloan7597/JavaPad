@@ -2,8 +2,7 @@ package javapad.client;
 
 import javapad.client.controllers.JavaPadController;
 import javapad.client.services.FileService;
-import javapad.client.services.JavaPadNetworkService;
-import javapad.client.services.StandardNetworkService;
+import javapad.client.services.SSLNetworkService;
 import javapad.client.views.JavaPadView;
 
 /**
@@ -13,6 +12,6 @@ public class Runner {
 
     public static void main(String[] args) {
         JavaPadView view = new JavaPadView();
-        JavaPadController controller = new JavaPadController(view, new FileService(), new StandardNetworkService());
+        JavaPadController controller = new JavaPadController(view, new FileService(), new SSLNetworkService());
     }
 }

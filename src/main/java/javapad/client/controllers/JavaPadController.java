@@ -66,7 +66,10 @@ public class JavaPadController {
 
         view.getConnect().addActionListener(e -> connectionDialog.show() );
 
-        view.getDisconnect().addActionListener(e -> jpNetworkService.disconnect() );
+        view.getDisconnect().addActionListener(e -> {
+            chatController.disconnect();
+            jpNetworkService.disconnect();
+        } );
 
         view.getToggleControl().addActionListener(e -> {
             JavaPadMessage jpm;
@@ -88,6 +91,9 @@ public class JavaPadController {
         });
 
         view.getOpenChat().addActionListener(e -> {
+            if (!chatController.isConnected()) {
+                chatController.connect();
+            }
             chatController.openChat();
         });
 

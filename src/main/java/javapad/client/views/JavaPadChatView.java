@@ -72,11 +72,11 @@ public class JavaPadChatView extends JFrame{
         return chatBox;
     }
 
-    public void appendChat(String message)
+    public void appendChat(String name, String message, boolean isMe)
     {
         try
         {
-            kit.insertHTML(doc, doc.getLength(), message, 0, 0, null);
+            kit.insertHTML(doc, doc.getLength(), getMessageAsHtml(name, message, isMe), 0, 0, null);
         } catch (final BadLocationException e)
         {
             e.printStackTrace();
@@ -93,5 +93,21 @@ public class JavaPadChatView extends JFrame{
 
     public void hideChatView() {
         this.setVisible(false);
+    }
+
+
+    public String getMessageAsHtml(String name, String message, boolean isMe)
+    {
+        if (name.equals("SYSTEM"))
+        {
+            return "<font color = red><b>" + name + ": " + message + "</b></font>\n";
+        } else
+        {
+            String colour;
+
+            colour = isMe ? "purple" : "blue";
+            return "<html><font color='" + colour + "'<b>" + name
+                    + "</b></font> " + message + "</html>";
+        }
     }
 }

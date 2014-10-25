@@ -15,10 +15,10 @@ import java.util.logging.Logger;
 /**
  * Created by conor on 20/10/2014.
  */
-public class StandardNetworkService implements JavaPadNetworkService {
+public class SSLNetworkService implements JavaPadNetworkService {
 
     /** Logger for this class */
-    private static Logger LOGGER = Logger.getLogger(StandardNetworkService.class
+    private static Logger LOGGER = Logger.getLogger(SSLNetworkService.class
             .getSimpleName());
 
     // SSL socket objects
