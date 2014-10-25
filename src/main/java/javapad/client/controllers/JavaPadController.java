@@ -9,6 +9,8 @@ import javapad.client.views.ConnectionDialog;
 import javapad.client.views.JavaPadView;
 import javapad.shared.utils.JavaPadMessage;
 
+import java.io.IOException;
+
 /**
  * Created by conor on 20/10/2014.
  *
@@ -58,16 +60,32 @@ public class JavaPadController {
 
         view.getMode().addActionListener(e -> changeSyntaxDialog.show() );
 
-        view.getSendData().addActionListener(e -> {
-            // Send data in data service
-        });
+        view.getSendData().addActionListener(e ->
+            jpNetworkService.sendMessage(new JavaPadMessage(
+                    JavaPadMessage.MessageType.SEND_DATA, view.getSyntaxTextArea().getText()))
+        );
 
         view.getConnect().addActionListener(e -> connectionDialog.show() );
 
         view.getDisconnect().addActionListener(e -> jpNetworkService.disconnect() );
 
         view.getToggleControl().addActionListener(e -> {
-           // Toggle control
+            JavaPadMessage jpm;
+            switch (connectionStatus)
+            {
+                case CONNECTED_NO_CONTROL:
+                    jpm = new JavaPadMessage(JavaPadMessage.MessageType.CONTROL_REQUEST, "");
+                    jpNetworkService.sendMessage(jpm);
+                    break;
+
+                case CONNECTED_IN_CONTROL:
+                    jpm = new JavaPadMessage(JavaPadMessage.MessageType.CONTROL_RELEASE, "");
+                    jpNetworkService.sendMessage(jpm);
+                    break;
+
+                default:
+                    break;
+            }
         });
 
         view.getOpenChat().addActionListener(e -> {
@@ -87,7 +105,7 @@ public class JavaPadController {
         connectionDialog.getConnectOkButton().addActionListener(e -> {
             jpNetworkService.connect(connectionDialog.getIpEntryField().getText(),
                     connectionDialog.getConnectPasswordField().getPassword(),
-                    (Integer) connectionDialog.getPortEntryField().getSelectedItem());
+                    Integer.parseInt((String)connectionDialog.getPortEntryField().getSelectedItem()));
             connectionDialog.hide();
         });
     }
@@ -99,8 +117,6 @@ public class JavaPadController {
             case CONNECT:
                 view.showMessage("You have connected successfully!");
                 updateConnectionStateInView(ConnectionState.ConnectionStatus.CONNECTED_NO_CONTROL);
-//                chatWindow = new JavaPadChatGUI();
-//                chatWindow.setVisible(true);
                 break;
             case CONNECT_DENIED:
                 view.showMessage("Error: Could not connect, message: "
