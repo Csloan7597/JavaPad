@@ -1,5 +1,6 @@
 package javapad.client.controllers;
 
+import javapad.client.models.ConnectionState;
 import javapad.client.services.FileService;
 import javapad.client.services.JavaPadNetworkService;
 import javapad.client.views.ChangeFontDialog;
@@ -57,13 +58,14 @@ public class JavaPadControllerTest {
     JButton syntaxOkButton = Mockito.mock(JButton.class);
     JButton connectionOkButton = Mockito.mock(JButton.class);
 
-    @Before
-    public void setUp() {
+    public void resetMocks() {
         Mockito.reset(view, fileService, networkService, fontDialog, syntaxModeDialog, connectionDialog, chat,
                 file, network, changeFont, close, connect, disconnect, mode, open, openChat, save, sendData,
                 toggleControl, syntaxTextArea
         );
+    }
 
+    public void setUpViewMockRules() {
         // Mocking rules
         when(view.getChangeFont()).thenReturn(changeFont);
         when(view.getClose()).thenReturn(close);
@@ -80,6 +82,12 @@ public class JavaPadControllerTest {
         when(fontDialog.getFontOkButton()).thenReturn(fontOkButton);
         when(syntaxModeDialog.getSyntaxOkButton()).thenReturn(syntaxOkButton);
         when(connectionDialog.getConnectOkButton()).thenReturn(connectionOkButton);
+    }
+
+    @Before
+    public void setUp() {
+        resetMocks();
+        setUpViewMockRules();
     }
 
     @Test
@@ -103,16 +111,7 @@ public class JavaPadControllerTest {
         verify(connectionOkButton).addActionListener(any());
 
         // Verify correct GUI modifications were made to reflect a non-connected state
-        verify(view).setPageTitle("JavaPad");
-        verify(syntaxTextArea).setEditable(true);
-        verify(chat).setEnabled(false);
-        verify(chat).setVisible(false);
-        verify(toggleControl).setEnabled(false);
-        verify(sendData).setEnabled(false);
-        verify(connect).setEnabled(true);
-        verify(disconnect).setEnabled(false);
-        verify(open).setEnabled(true);
-        verify(save).setEnabled(true);
+        assertDisconnectedState();
 
         // Verify that the networking service has a callback set for message passing
         verify(networkService).setMessageCallback(any(Function.class));
@@ -133,12 +132,95 @@ public class JavaPadControllerTest {
         // Assert no errors from a null input (returns null)
         assertNull(callback.apply(null));
 
-        // Assert the callback checks the type of the message
-        JavaPadMessage mockMessage = Mockito.mock(JavaPadMessage.class);
-        when(mockMessage.getMessageType()).thenReturn(JavaPadMessage.MessageType.CONNECT_DENIED);
+        /** For each type of message, check the type is checked in the callback, messages are given to view,
+         * and state changed when applicable. Then reset the mocks. **/
+
+        // CONNECT_DENIED - shows message
+        callbackTest(Mockito.mock(JavaPadMessage.class), callback, JavaPadMessage.MessageType.CONNECT_DENIED, true);
+        resetMocks(); setUpViewMockRules();
+
+        // CONNECT - shows message & updates state to connected
+        callbackTest(Mockito.mock(JavaPadMessage.class), callback, JavaPadMessage.MessageType.CONNECT, false);
+        assertConnectedNoControlState();
+        resetMocks(); setUpViewMockRules();
+
+        // DISCONNECT - shows message & updates state to disconnected
+        callbackTest(Mockito.mock(JavaPadMessage.class), callback, JavaPadMessage.MessageType.DISCONNECT, false);
+        assertDisconnectedState();
+        resetMocks(); setUpViewMockRules();
+
+        // CONTROL_GRANTED - shows message & updates state to CONNECTED_IN_CONTROL
+        callbackTest(Mockito.mock(JavaPadMessage.class), callback, JavaPadMessage.MessageType.CONTROL_GRANTED, false);
+        assertConnectedInControlState();
+        resetMocks(); setUpViewMockRules();
+
+        // CONTROL_DENIED - shows message (reason)
+        callbackTest(Mockito.mock(JavaPadMessage.class), callback, JavaPadMessage.MessageType.CONTROL_DENIED, true);
+        resetMocks(); setUpViewMockRules();
+
+        // CONTROL_RELEASED - updates state to CONNECTED_NO_CONTROL & shows message
+        callbackTest(Mockito.mock(JavaPadMessage.class), callback, JavaPadMessage.MessageType.CONTROL_RELEASE, false);
+        assertConnectedNoControlState();
+        resetMocks(); setUpViewMockRules();
+
+        // SEND_DATA - sets text area & shows message
+        callbackTest(Mockito.mock(JavaPadMessage.class), callback, JavaPadMessage.MessageType.SEND_DATA, true);
+        resetMocks(); setUpViewMockRules();
+
+        // SERVER_RESPONSE_ERROR - shows message
+        callbackTest(Mockito.mock(JavaPadMessage.class), callback, JavaPadMessage.MessageType.SERVER_RESPONSE_ERROR, true);
+        resetMocks(); setUpViewMockRules();
+    }
+
+    public void callbackTest(JavaPadMessage mockMessage, Function<JavaPadMessage, Void> callback,
+                             JavaPadMessage.MessageType type, boolean checkForMessageBody) {
+        when(mockMessage.getMessageType()).thenReturn(type);
         callback.apply(mockMessage);
         verify(mockMessage).getMessageType();
+        if (checkForMessageBody) { verify(mockMessage).getMessageBody(); }
+        verify(view).showMessage(any(String.class));
         Mockito.reset(mockMessage);
+    }
+
+    public void assertConnectedInControlState() {
+        verify(view).setPageTitle("JavaPad - Connected");
+        verify(syntaxTextArea).setEditable(true);
+        verify(chat).setEnabled(true);
+        verify(chat).setVisible(true);
+        verify(toggleControl).setEnabled(true);
+        verify(toggleControl).setText("Relinquish Control");
+        verify(sendData).setEnabled(true);
+        verify(connect).setEnabled(false);
+        verify(disconnect).setEnabled(true);
+        verify(open).setEnabled(true);
+        verify(save).setEnabled(true);
+    }
+
+    public void assertConnectedNoControlState() {
+        verify(view).setPageTitle("JavaPad - Connected");
+        verify(syntaxTextArea).setEditable(false);
+        verify(chat).setEnabled(true);
+        verify(chat).setVisible(true);
+        verify(toggleControl).setEnabled(true);
+        verify(toggleControl).setText("Request Control");
+        verify(sendData).setEnabled(false);
+        verify(connect).setEnabled(false);
+        verify(disconnect).setEnabled(true);
+        verify(open).setEnabled(false);
+        verify(save).setEnabled(true);
+    }
+
+    public void assertDisconnectedState() {
+        verify(view).setPageTitle("JavaPad");
+        verify(syntaxTextArea).setEditable(true);
+        verify(chat).setEnabled(false);
+        verify(chat).setVisible(false);
+        verify(toggleControl).setEnabled(false);
+        verify(sendData).setEnabled(false);
+        verify(connect).setEnabled(true);
+        verify(disconnect).setEnabled(false);
+        verify(open).setEnabled(true);
+        verify(save).setEnabled(true);
     }
 
 }
