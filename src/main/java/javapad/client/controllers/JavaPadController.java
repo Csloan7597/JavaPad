@@ -31,13 +31,16 @@ public class JavaPadController {
     private JavaPadChatController chatController = new JavaPadChatController(chatView);
 
 
-    public JavaPadController(JavaPadView view, FileService fileService, JavaPadNetworkService jpNetworkService) {
+    public JavaPadController(JavaPadView view, FileService fileService, JavaPadNetworkService jpNetworkService,
+                             ChangeFontDialog changeFontDialog, ChangeSyntaxModeDialog syntaxModeDialog,
+                             ConnectionDialog connectionDialog) {
+
         this.view = view;
         this.fileService = fileService;
         this.jpNetworkService = jpNetworkService;
-        this.changeFontDialog = new ChangeFontDialog(view);
-        this.changeSyntaxDialog = new ChangeSyntaxModeDialog(view);
-        this.connectionDialog = new ConnectionDialog(view);
+        this.changeFontDialog = changeFontDialog;
+        this.changeSyntaxDialog = syntaxModeDialog;
+        this.connectionDialog = connectionDialog;
         configureActionListeners();
 
         // Set default connection status
@@ -116,6 +119,11 @@ public class JavaPadController {
     }
 
     private Void messageCallback(JavaPadMessage message) {
+
+        if (message == null) {
+            return null;
+        }
+
         // Do stuff here based on message;
         switch (message.getMessageType())
         {
