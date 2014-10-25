@@ -3,13 +3,8 @@ package javapad.client.controllers;
 import javapad.client.models.ConnectionState;
 import javapad.client.services.FileService;
 import javapad.client.services.JavaPadNetworkService;
-import javapad.client.views.ChangeFontDialog;
-import javapad.client.views.ChangeSyntaxModeDialog;
-import javapad.client.views.ConnectionDialog;
-import javapad.client.views.JavaPadView;
+import javapad.client.views.*;
 import javapad.shared.utils.JavaPadMessage;
-
-import java.io.IOException;
 
 /**
  * Created by conor on 20/10/2014.
@@ -31,6 +26,10 @@ public class JavaPadController {
     // Model / State
     private ConnectionState.ConnectionStatus connectionStatus;
 
+    // Sub-controllers
+    private JavaPadChatView chatView = new JavaPadChatView();
+    private JavaPadChatController chatController = new JavaPadChatController(chatView);
+
 
     public JavaPadController(JavaPadView view, FileService fileService, JavaPadNetworkService jpNetworkService) {
         this.view = view;
@@ -48,7 +47,7 @@ public class JavaPadController {
         jpNetworkService.setMessageCallback(this::messageCallback);
     }
 
-    public void configureActionListeners() {
+    private void configureActionListeners() {
 
         view.getClose().addActionListener(e -> System.exit(0));
 
@@ -89,7 +88,7 @@ public class JavaPadController {
         });
 
         view.getOpenChat().addActionListener(e -> {
-            // Open Chat window or create one if not
+            chatController.openChat();
         });
 
         changeFontDialog.getFontOkButton().addActionListener(e -> {
