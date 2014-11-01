@@ -34,7 +34,7 @@ public class FileService {
         }
     }
 
-    public void open(JavaPadView view) {
+    public String open(JavaPadView view) {
         try
         {
             final JFileChooser opener = new JFileChooser(); // opens filechooser
@@ -43,7 +43,7 @@ public class FileService {
             {
                 final String path = opener.getSelectedFile().getPath();
                 final String toSet = FileUtils.openTextFile(path);
-                view.getSyntaxTextArea().setText(toSet);
+                return toSet;
             }
         } catch (final FileNotFoundException e)
         {
@@ -51,5 +51,6 @@ public class FileService {
                     + e.getMessage());
             view.showMessage("The File you selected was not found");
         }
+        return null;
     }
 }

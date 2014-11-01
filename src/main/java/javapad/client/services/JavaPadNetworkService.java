@@ -1,6 +1,5 @@
 package javapad.client.services;
 
-import javapad.client.models.ConnectionState;
 import javapad.shared.utils.JavaPadMessage;
 
 import java.util.function.Function;

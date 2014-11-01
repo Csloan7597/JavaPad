@@ -1,6 +1,6 @@
 package javapad.client.controllers;
 
-import javapad.client.models.ConnectionState;
+import javapad.client.models.ConnectionStatus;
 import javapad.client.services.FileService;
 import javapad.client.services.JavaPadNetworkService;
 import javapad.client.views.*;
@@ -8,7 +8,7 @@ import javapad.shared.utils.JavaPadMessage;
 
 /**
  * Created by conor on 20/10/2014.
- *
+ * <p>
  * Main controller of the application, representing the main text pad window.
  */
 public class JavaPadController {
@@ -24,7 +24,7 @@ public class JavaPadController {
     private final ConnectionDialog connectionDialog;
 
     // Model / State
-    private ConnectionState.ConnectionStatus connectionStatus;
+    private ConnectionStatus connectionStatus;
 
     // Sub-controllers
     private JavaPadChatView chatView = new JavaPadChatView();
@@ -44,7 +44,7 @@ public class JavaPadController {
         configureActionListeners();
 
         // Set default connection status
-        this.updateConnectionStateInView(ConnectionState.ConnectionStatus.DISCONNECTED);
+        this.updateConnectionStateInView(ConnectionStatus.DISCONNECTED);
 
         // This will be updated when some connection happens
         jpNetworkService.setMessageCallback(this::messageCallback);
@@ -54,30 +54,29 @@ public class JavaPadController {
 
         view.getClose().addActionListener(e -> System.exit(0));
 
-        view.getOpen().addActionListener(e -> fileService.open(view) );
+        view.getOpen().addActionListener(e -> view.getSyntaxTextArea().setText(fileService.open(view)));
 
-        view.getSave().addActionListener(e -> fileService.save(view) );
+        view.getSave().addActionListener(e -> fileService.save(view));
 
-        view.getChangeFont().addActionListener(e -> changeFontDialog.show() );
+        view.getChangeFont().addActionListener(e -> changeFontDialog.show());
 
-        view.getMode().addActionListener(e -> changeSyntaxDialog.show() );
+        view.getMode().addActionListener(e -> changeSyntaxDialog.show());
 
         view.getSendData().addActionListener(e ->
-            jpNetworkService.sendMessage(new JavaPadMessage(
-                    JavaPadMessage.MessageType.SEND_DATA, view.getSyntaxTextArea().getText()))
+                        jpNetworkService.sendMessage(new JavaPadMessage(
+                                JavaPadMessage.MessageType.SEND_DATA, view.getSyntaxTextArea().getText()))
         );
 
-        view.getConnect().addActionListener(e -> connectionDialog.show() );
+        view.getConnect().addActionListener(e -> connectionDialog.show());
 
         view.getDisconnect().addActionListener(e -> {
             chatController.disconnect();
             jpNetworkService.disconnect();
-        } );
+        });
 
         view.getToggleControl().addActionListener(e -> {
             JavaPadMessage jpm;
-            switch (connectionStatus)
-            {
+            switch (connectionStatus) {
                 case CONNECTED_NO_CONTROL:
                     jpm = new JavaPadMessage(JavaPadMessage.MessageType.CONTROL_REQUEST, "");
                     jpNetworkService.sendMessage(jpm);
@@ -113,7 +112,7 @@ public class JavaPadController {
         connectionDialog.getConnectOkButton().addActionListener(e -> {
             jpNetworkService.connect(connectionDialog.getIpEntryField().getText(),
                     connectionDialog.getConnectPasswordField().getPassword(),
-                    Integer.parseInt((String)connectionDialog.getPortEntryField().getSelectedItem()));
+                    Integer.parseInt((String) connectionDialog.getPortEntryField().getSelectedItem()));
             connectionDialog.hide();
         });
     }
@@ -125,26 +124,24 @@ public class JavaPadController {
         }
 
         // Do stuff here based on message;
-        switch (message.getMessageType())
-        {
+        switch (message.getMessageType()) {
             case CONNECT:
                 view.showMessage("You have connected successfully!");
-                updateConnectionStateInView(ConnectionState.ConnectionStatus.CONNECTED_NO_CONTROL);
+                updateConnectionStateInView(ConnectionStatus.CONNECTED_NO_CONTROL);
                 break;
             case CONNECT_DENIED:
                 view.showMessage("Error: Could not connect, message: "
                         + message.getMessageBody());
                 break;
             case DISCONNECT:
-                if (this.connectionStatus != ConnectionState.ConnectionStatus.DISCONNECTED)
-                {
+                if (this.connectionStatus != ConnectionStatus.DISCONNECTED) {
                     view.showMessage("Server has disconnected");
-                    updateConnectionStateInView(ConnectionState.ConnectionStatus.DISCONNECTED);
+                    updateConnectionStateInView(ConnectionStatus.DISCONNECTED);
                 }
                 break;
             case CONTROL_GRANTED:
                 view.showMessage("You have gained control!");
-                updateConnectionStateInView(ConnectionState.ConnectionStatus.CONNECTED_IN_CONTROL);
+                updateConnectionStateInView(ConnectionStatus.CONNECTED_IN_CONTROL);
                 break;
             case CONTROL_DENIED:
                 view.showMessage("You have been denied control, message: "
@@ -152,7 +149,7 @@ public class JavaPadController {
                 break;
             case CONTROL_RELEASE:
                 view.showMessage("Control released");
-                updateConnectionStateInView(ConnectionState.ConnectionStatus.CONNECTED_NO_CONTROL);
+                updateConnectionStateInView(ConnectionStatus.CONNECTED_NO_CONTROL);
                 break;
             case SEND_DATA:
                 view.getSyntaxTextArea().setText(message.getMessageBody());
@@ -169,12 +166,11 @@ public class JavaPadController {
         return null;
     }
 
-    private void updateConnectionStateInView(ConnectionState.ConnectionStatus state) {
+    private void updateConnectionStateInView(ConnectionStatus state) {
 
         this.connectionStatus = state;
 
-        switch (state)
-        {
+        switch (state) {
             case DISCONNECTED:
                 view.setPageTitle("JavaPad");
                 view.getSyntaxTextArea().setEditable(true);

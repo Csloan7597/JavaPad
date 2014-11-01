@@ -1,6 +1,5 @@
 package javapad.client.controllers;
 
-import javapad.client.models.ConnectionState;
 import javapad.client.services.FileService;
 import javapad.client.services.JavaPadNetworkService;
 import javapad.client.views.ChangeFontDialog;

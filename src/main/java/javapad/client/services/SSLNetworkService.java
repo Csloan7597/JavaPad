@@ -20,30 +20,33 @@ public class SSLNetworkService implements JavaPadNetworkService {
     /** Logger for this class */
     private static Logger LOGGER = Logger.getLogger(SSLNetworkService.class
             .getSimpleName());
+    private final SSLNetworkResponseListener responseListener;
 
     // SSL socket objects
     private SSLSocketFactory mySSLSocketFactory;
     private SSLSocket mySSLSocket;
-    final String[] enabledCipherSuites =
+    private final String[] enabledCipherSuites =
             { "SSL_DH_anon_WITH_RC4_128_MD5" };
 
     // Reader and writer objects
     ObjectInputStream in;
     ObjectOutputStream out;
     Thread listenerThread;
-    private Function<JavaPadMessage, Void> messageCallback;
 
+    public SSLNetworkService(SSLSocketFactory socketFactory, SSLNetworkResponseListener responseListener) {
+        this.mySSLSocketFactory = socketFactory;
+        this.responseListener = responseListener;
+    }
 
     @Override
     public void setMessageCallback(Function<JavaPadMessage, Void> callback) {
-        this.messageCallback = callback;
+        this.responseListener.setCallback(callback);
     }
 
     @Override
     public void connect(String IP, char[] pass, int port) {
         try {
             LOGGER.info("Connecting to the Server");
-            mySSLSocketFactory = (SSLSocketFactory) SSLSocketFactory.getDefault();
             mySSLSocket = (SSLSocket) mySSLSocketFactory.createSocket(IP, port);
             mySSLSocket.setEnabledCipherSuites(enabledCipherSuites);
 
@@ -56,10 +59,14 @@ public class SSLNetworkService implements JavaPadNetworkService {
             sendMessage(jpm);
 
             // Now open the listener to get a response
-            listenerThread = new Thread(new ResponseListener());
+            responseListener.setSocket(mySSLSocket);
+            responseListener.setInputStream(in);
+            listenerThread = new Thread(responseListener);
             listenerThread.start();
+
         } catch (Exception e) {
-            LOGGER.severe("Connection issue");
+            LOGGER.severe("Connection issue " + e.getMessage() );
+            e.printStackTrace();
         }
     }
 
@@ -88,40 +95,5 @@ public class SSLNetworkService implements JavaPadNetworkService {
         }
     }
 
-    private class ResponseListener implements Runnable, IResponseListener
-    {
 
-        @Override
-        public void handleMessage(JavaPadMessage jpm)
-        {
-            messageCallback.apply(jpm);
-            if (jpm.getMessageType() == JavaPadMessage.MessageType.DISCONNECT)
-            {
-                disconnect();
-            }
-        }
-
-        @Override
-        public void run()
-        {
-            try
-            {
-                while (!mySSLSocket.isClosed())
-                {
-                    // Listen for incoming object messages
-                    final JavaPadMessage jpm = (JavaPadMessage) in.readObject();
-                    handleMessage(jpm);
-                }
-            } catch (IOException | ClassNotFoundException e)
-            {
-                LOGGER.severe("Error in listener thread: " + e.getMessage());
-                LOGGER.info("Connection Closed");
-                handleMessage(new JavaPadMessage(JavaPadMessage.MessageType.DISCONNECT));
-            } finally
-            {
-                disconnect();
-            }
-
-        }
-    }
 }

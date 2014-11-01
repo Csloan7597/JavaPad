@@ -79,7 +79,6 @@ public class JavaPadChatController {
 
     private Void handleMessage(String message) {
         final int indexOfColon = message.indexOf(':');
-
         final String messageName = message.substring(0, indexOfColon);
         final String rest = message.substring(indexOfColon);
         view.appendChat(messageName, rest, name.equals(messageName));
